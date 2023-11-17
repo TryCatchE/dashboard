@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Chart from "chart.js/auto";
 import { CategoryScale } from "chart.js";
 import PieChart from "./components/PieChart/index.jsx";
@@ -8,45 +8,34 @@ import LineChart  from "./components/LineChart/index.jsx";
 Chart.register(CategoryScale);
 
 const App = () => {
-  const Data = [
-    {
-      id: 1,
-      year: 2016,
-      userGain: 80000,
-      userLost: 823,
-    },
-    {
-      id: 2,
-      year: 2017,
-      userGain: 45677,
-      userLost: 345,
-    },
-    {
-      id: 3,
-      year: 2018,
-      userGain: 78888,
-      userLost: 555,
-    },
-    {
-      id: 4,
-      year: 2019,
-      userGain: 90000,
-      userLost: 4555,
-    },
-    {
-      id: 5,
-      year: 2020,
-      userGain: 4300,
-      userLost: 234,
-    },
-  ];
 
-  const [chartData, setChartData] = useState({
-    labels: Data.map((data) => data.year), 
+  const [data, setData] = useState();
+  
+  useEffect(() => {
+    const fetchData = () => {
+      fetch('http://localhost:8080/')
+        .then((response) => response.json())
+        .then((result) => setData(result))
+        .catch((error) => console.error('Error fetching data:', error));
+    };
+  
+    fetchData();
+  
+    const intervalId = setInterval(fetchData, 2000);
+  
+    return () => clearInterval(intervalId);
+  }, []);
+
+  if (!data) {
+    return <div>Loading...</div>;
+  }
+
+  const chartData = {
+    labels: data.map((item) => item.randomYear),
     datasets: [
       {
-        label: "Users Gained ",
-        data: Data.map((data) => data.userGain),
+        label: "Users Gained",
+        data: data.map((item) => item.females),
         backgroundColor: [
           "rgba(75,192,192,1)",
           "#50AF95",
@@ -57,7 +46,7 @@ const App = () => {
         borderWidth: 2
       }
     ]
-  });
+  };
   return (
     <div className="App">
       <PieChart chartData={chartData} />
